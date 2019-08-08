@@ -135,24 +135,7 @@ public class Tuple {
 
 	public void setAttributes(HashMap<String, Object> attributes) {
 		this.attributes = attributes;
-	}
-	
-	public void setReference(String field, Object value) {
-		int index = field.indexOf('.');
-		if(index < 0) {
-			this.setAttribute(field, value);	
-		}else {
-			String ref = field.substring(0, index);
-			String _field = field.substring(index +1);
-			Tuple reference = parent.get(ref);
-			if(null == reference) {
-				reference = new Tuple();
-				parent.put(ref, reference);
-			}
-			reference.setReference(_field, value);
-		}		
-	}
-	
+	}	
 
 	@JsonAnySetter
 	public void setAttribute(String key, Object value) {
@@ -222,5 +205,57 @@ public class Tuple {
 	public boolean forCreate() {
 		return null == this.action ? false : this.action == Action.CREATE;
 	}
-
+	
+	@JsonIgnore
+	public void setRefAttribute(String field, Object value) {
+		int index = field.indexOf('.');
+		if(index < 0) {
+			this.setAttribute(field, value);	
+		}else {
+			String ref = field.substring(0, index);
+			String _field = field.substring(index +1);
+			Tuple reference = parent.get(ref);
+			if(null == reference) {
+				reference = new Tuple();
+				parent.put(ref, reference);
+			}
+			if(_field.equals("id")) {				
+				reference.setId(value);
+			}else
+				reference.setRefAttribute(_field, value);
+		}		
+	}
+	
+	@JsonIgnore
+	public Object getRefAttribute(String field) {
+		int index = field.indexOf('.');
+		if(index < 0) {
+			return this.getAttribute(field);	
+		}else {
+			String ref = field.substring(0, index);
+			String _field = field.substring(index +1);
+			Tuple reference = parent.get(ref);
+			if(null == reference) {
+				reference = new Tuple();
+				parent.put(ref, reference);
+			}
+			if(_field.equals("id")) {				
+				return reference.getId();
+			}else
+			return reference.getRefAttribute(_field);
+		}		
+	}
+	
+	/**
+	 * @param value
+	 */
+	private void setId(Object value) {
+		if(null == value)
+			this.id = null;
+		else if(value instanceof String)
+			this.id = (String) value;
+		else
+			this.id = value.toString();
+			
+	}
 }

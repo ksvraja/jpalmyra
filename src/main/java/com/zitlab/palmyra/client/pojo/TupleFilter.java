@@ -25,10 +25,6 @@ public class TupleFilter<T> {
 	private Integer limit;
 	private boolean total;
 	
-	private String addlCritera;
-	private String addlJoin;
-	private String query;
-	
 	public TupleFilter() {
 		
 	}
@@ -79,33 +75,18 @@ public class TupleFilter<T> {
 		return total;
 	}
 
+	public void addFields(String fieldList) {
+		String[] fieldArray = fieldList.split(",");
+		if(null == fields)
+			fields = new FieldList();
+		String field;
+		for(int i=0; i < fieldArray.length; i++) {
+			field = fieldArray[i].trim();
+			fields.addField(field);
+		}
+	}
+	
 	public void setTotal(boolean total) {
 		this.total = total;
 	}
-
-	@JsonIgnore
-	public String getAddlCritera() {
-		return addlCritera;
-	}
-	@JsonIgnore
-	public void setAddlCritera(String addlCritera) {
-		this.addlCritera = addlCritera;
-	}
-	
-	@JsonIgnore
-	public String getAddlJoin() {
-		return addlJoin;
-	}	
-	@JsonIgnore
-	public void setAddlJoin(String addlJoin) {
-		this.addlJoin = addlJoin;
-	}
-	@JsonIgnore
-	public String getQuery() {
-		return query;
-	}
-	@JsonIgnore
-	public void setQuery(String query) {
-		this.query = query;
-	}	
 }
