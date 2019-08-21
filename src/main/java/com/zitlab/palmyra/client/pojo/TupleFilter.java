@@ -89,4 +89,15 @@ public class TupleFilter<T> {
 	public void setTotal(boolean total) {
 		this.total = total;
 	}
+	
+	@JsonIgnore
+	public void addOrderDesc(String field){
+		orderBy.add("-" + field);
+	}
+
+	@JsonIgnore
+	public void addOrderAsc(String field){
+		orderBy.add("+" + field);
+	}
+	
 }

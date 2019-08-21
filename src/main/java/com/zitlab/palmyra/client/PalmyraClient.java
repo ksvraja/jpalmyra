@@ -109,6 +109,31 @@ public class PalmyraClient extends TupleRestClient {
 		throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
 	}
 
+	public <T> ArrayList<T> list(String url, Object obj, Class<T> valueType) throws IOException {
+		HttpEntity entity = post(customUrl(url), obj);
+		if (null == entity) {
+			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		}
+		return deserialize(entity, new TypeReference<ArrayList<T>>() {
+		});
+	}
+	
+	public <T> T postCustom(String url, Object obj, Class<T> valueType) throws IOException {
+		HttpEntity entity = post(customUrl(url), obj);
+		if (null == entity) {
+			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		}
+		return deserialize(entity, valueType);
+	}
+	
+	public <T> T getCustom(String url, Class<T> valueType) throws IOException {
+		HttpEntity entity = get(customUrl(url));
+		if (null == entity) {
+			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		}
+		return deserialize(entity, valueType);
+	}
+	
 	public <T> T execute(String action, Object obj, Class<T> valueType) throws IOException {		
 		HttpEntity entity = post(actionUrl(action), obj);
 		if (null != entity) {

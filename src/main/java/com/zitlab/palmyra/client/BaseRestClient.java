@@ -164,8 +164,12 @@ public abstract class BaseRestClient {
 			}
 			throw new ServerErrorException(message);
 		}
+		case HttpStatus.SC_GATEWAY_TIMEOUT: {
+			logger.info("Gateway timeout -- {}", url);
+			throw new ClientException("Gateway timedout while accessing the url ");
+		}
 		case HttpStatus.SC_NOT_FOUND: {
-			logger.info("Requested URL not found message from server url -- {}");
+			logger.info("Requested URL not found message from server url -- {}", url);
 			throw new ClientException("Requested URL not found from the server");
 		}
 		case HttpStatus.SC_BAD_REQUEST:{

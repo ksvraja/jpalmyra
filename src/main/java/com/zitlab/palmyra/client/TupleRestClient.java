@@ -22,7 +22,6 @@ import com.zitlab.palmyra.client.pojo.Tuple;
 import com.zitlab.palmyra.client.pojo.TupleFilter;
 import com.zitlab.palmyra.client.pojo.TupleResultSet;
 
-
 /**
  * @author ksvraja
  *
@@ -39,7 +38,8 @@ public class TupleRestClient extends BaseRestClient {
 	public TupleRestClient(String baseUrl, String username, String password, String appn) {
 		this.baseUrl = baseUrl;
 		this.username = username;
-		this.password = DigestUtils.md5Hex(password);;
+		if(null != password)
+			this.password = DigestUtils.md5Hex(password);
 		this.appn = appn;
 	}
 
@@ -56,7 +56,7 @@ public class TupleRestClient extends BaseRestClient {
 		Tuple tuple = new Tuple(type);
 		tuple.setAttribute(key, value);
 		filter.setCriteria(tuple);
-		if(null != fields)
+		if (null != fields)
 			filter.addFields(fields);
 		HttpEntity entity = post(uniqueUrl(type), filter);
 		if (null != entity) {
@@ -83,16 +83,39 @@ public class TupleRestClient extends BaseRestClient {
 	}
 
 	public ArrayList<Tuple> list(TupleFilter<Tuple> filter, String type) throws IOException {
-
 		HttpEntity entity = post(listUrl(type), filter);
 		if (null == entity) {
 			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
 		}
 		return deserialize(entity, new TypeReference<ArrayList<Tuple>>() {
 		});
-
 	}
 
+	public ArrayList<Tuple> listCustom(String url, Object obj) throws IOException {
+		HttpEntity entity = post(customUrl(url), obj);
+		if (null == entity) {
+			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		}
+		return deserialize(entity, new TypeReference<ArrayList<Tuple>>() {
+		});
+	}
+	
+	public Tuple postCustom(String url, Object obj) throws IOException {
+		HttpEntity entity = post(customUrl(url), obj);
+		if (null == entity) {
+			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		}
+		return deserialize(entity, Tuple.class);
+	}
+	
+	public Tuple getCustom(String url) throws IOException {
+		HttpEntity entity = get(customUrl(url));
+		if (null == entity) {
+			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		}
+		return deserialize(entity, Tuple.class);
+	}
+	
 	public Tuple save(Tuple tuple) throws IOException {
 		String type = tuple.getType();
 		HttpEntity entity = post(getUrl(type), tuple);
@@ -105,13 +128,13 @@ public class TupleRestClient extends BaseRestClient {
 	@Override
 	protected final void setAuthentication(HttpMessage request) {
 		HashMap<String, String> headers = authClient.getHeaders(username, password, appn, deviceId);
-		for(Entry<String,String> entry : headers.entrySet()) {
+		for (Entry<String, String> entry : headers.entrySet()) {
 			request.addHeader(entry.getKey(), entry.getValue());
 		}
 	}
 
 	public final HashMap<String, String> getAuthHeaders() {
-		return authClient.getHeaders(username, password, appn, deviceId);		
+		return authClient.getHeaders(username, password, appn, deviceId);
 	}
 
 	protected final String getUrl(String type) {
@@ -142,8 +165,8 @@ public class TupleRestClient extends BaseRestClient {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl).append("/")
 				// .append("/api/")
-				.append(appn).append("/action/");		
-			sb.append("/").append(type).append("/").append(action);
+				.append(appn).append("/action/");
+		sb.append("/").append(type).append("/").append(action);
 		return sb.toString();
 	}
 
@@ -151,12 +174,12 @@ public class TupleRestClient extends BaseRestClient {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl).append("/")
 				// .append("/api/")
-				.append(appn).append("/action/").append(action);		
+				.append(appn).append("/action/").append(action);
 		return sb.toString();
 	}
-	
+
 	protected final String listUrl(String type) {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder(type.length() + 32);
 		sb.append(baseUrl).append("/")
 				// .append("/api/")
 				.append(appn).append("/query/").append(type).append("/list");
@@ -171,6 +194,12 @@ public class TupleRestClient extends BaseRestClient {
 		return sb.toString();
 	}
 
+	protected final String customUrl(String url) {
+		StringBuilder sb = new StringBuilder(baseUrl);
+		sb.append("/").append(appn).append("/").append(url);
+		return sb.toString();
+	}
+
 	public final Tuple executeAction(String action) throws IOException {
 		HttpEntity entity = post(actionUrl(action), "{}");
 		if (null == entity) {
@@ -179,7 +208,7 @@ public class TupleRestClient extends BaseRestClient {
 		return deserialize(entity, Tuple.class);
 	}
 
-	public final Tuple executeAction(String action, Tuple tuple) throws IOException {		
+	public final Tuple executeAction(String action, Tuple tuple) throws IOException {
 		HttpEntity entity = post(actionUrl(action), tuple);
 		if (null == entity) {
 			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
@@ -187,7 +216,7 @@ public class TupleRestClient extends BaseRestClient {
 		return deserialize(entity, Tuple.class);
 	}
 
-	public final ArrayList<Tuple> executeActionList(String action, Tuple tuple) throws IOException {		
+	public final ArrayList<Tuple> executeActionList(String action, Tuple tuple) throws IOException {
 		HttpEntity entity = post(actionUrl(action), tuple);
 		if (null == entity) {
 			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
@@ -205,7 +234,7 @@ public class TupleRestClient extends BaseRestClient {
 		return deserialize(entity, Tuple.class);
 	}
 
-	public final Tuple executeAction(String action, Tuple tuple, String type) throws IOException {		
+	public final Tuple executeAction(String action, Tuple tuple, String type) throws IOException {
 		HttpEntity entity = post(actionUrl(action, type), tuple);
 		if (null == entity) {
 			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
@@ -213,7 +242,7 @@ public class TupleRestClient extends BaseRestClient {
 		return deserialize(entity, Tuple.class);
 	}
 
-	public final ArrayList<Tuple> executeActionList(String action, Tuple tuple, String type) throws IOException {		
+	public final ArrayList<Tuple> executeActionList(String action, Tuple tuple, String type) throws IOException {
 		HttpEntity entity = post(actionUrl(action, type), tuple);
 		if (null == entity) {
 			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
@@ -222,7 +251,7 @@ public class TupleRestClient extends BaseRestClient {
 		});
 		return result;
 	}
-	
+
 	public String getBaseUrl() {
 		return baseUrl;
 	}
@@ -248,7 +277,7 @@ public class TupleRestClient extends BaseRestClient {
 	}
 
 	public void setAuthClient(AuthClient authClient) {
-		if(null != authClient)
+		if (null != authClient)
 			this.authClient = authClient;
 	}
 

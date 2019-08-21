@@ -45,9 +45,6 @@ public abstract class AbstractTupleDeserializer<T extends Tuple> extends StdDese
 			String key = entry.getKey();
 			JsonNode value = entry.getValue();
 			
-			
-			
-
 			switch (value.getNodeType()) {
 			case NUMBER:
 				if (TUPLE_ID.equals(key)) {

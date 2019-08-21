@@ -1,21 +1,9 @@
-def versions = [ spring: '5.1.6.RELEASE', spring_security: '5.1.5.RELEASE',
-	servlet_api:'3.1.0', aws_sdk:'1.11.492', jackson:'2.9.8', 
-	groovy:'2.5.6', velocity:'1.7',slf4j:"1.7.26",sql2o : "1.6.0",
-	quartz:'2.2.1', jetty:'9.4.16.v20190411', aws:'1.11.539',
-	httpcomponents:'4.5.8',tika_core:'1.20',commons_codec:'1.11', 
-	commons_email:'1.4', commons_io:"2.6", commons_lang3:"3.7",
-	xmlapi:"1.0.b2", tus_server:"1.0.0-2.0",tus_client:"0.4.1"]
+/*
+ * Build file for jpalmyra
+ * 
+ */
 
-def spring = [
-	webmvc: "org.springframework:spring-webmvc:${versions.spring}",
-	web: "org.springframework:spring-web:${versions.spring}",
-	jdbc : "org.springframework:spring-jdbc:${versions.spring}",
-	context : "org.springframework:spring-context:${versions.spring}",
-	core : "org.springframework:spring-core:${versions.spring}",
-	spring_tx : "org.springframework:spring-tx:${versions.spring}",
-	security_web: "org.springframework.security:spring-security-web:${versions.spring_security}",
-	context_support : "org.springframework:spring-context-support:${versions.spring_security}"
-]
+def versions = [ jackson:'2.9.8', ,slf4j:"1.7.26", httpcomponents:'4.5.8']
 
 def jackson = [
 	annotations: "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}",
@@ -24,50 +12,13 @@ def jackson = [
 ]
 
 def apache = [
-  	commons: [ codec : "commons-codec:commons-codec:${versions.commons_codec}",
-		email: "org.apache.commons:commons-email:${versions.commons_email}",
-		io :"commons-io:commons-io:${versions.commons_io}",
-		lang3:"org.apache.commons:commons-lang3:${versions.commons_lang3}"
-	],
-	http: [ client:"org.apache.httpcomponents:httpclient:${versions.httpcomponents}",
-		mime:"org.apache.httpcomponents:httpmime:${versions.httpcomponents}"
-	],
-	tika :[core:"org.apache.tika:tika-core:${versions.tika_core}"],
-	velocity : "org.apache.velocity:velocity:${versions.velocity}",
-	ddlutils : "org.apache.ddlutils:ddlutils:1.1"
-]
-
-def log = [
-  slf4j: [ api:"org.slf4j:slf4j-api:${versions.slf4j}",
-		log4j12:"org.slf4j:slf4j-log4j12:${versions.slf4j}"  
-  ]
-]
-
-
-def jetty = [
-  servlet: "org.eclipse.jetty:jetty-servlet:${versions.jetty}",
-  proxy: "org.eclipse.jetty:jetty-proxy:${versions.jetty}"
-]
-
-def com = [
-	amazon : [
-		s3:"com.amazonaws:aws-java-sdk-s3:${versions.aws}",
-		sqs:"com.amazonaws:aws-java-sdk-sqs:${versions.aws}"
+	http: [ client:"org.apache.httpcomponents:httpclient:${versions.httpcomponents}"
 	]
 ]
 
-def org = [
-	groovy : "org.codehaus.groovy:groovy:${versions.groovy}", 
-	quartz : "org.quartz-scheduler:quartz:${versions.quartz}",
-	sql2o : "org.sql2o:sql2o:${versions.sql2o}",
-	tus : [client : "io.tus.java.client:tus-java-client:${versions.tus_client}",
-	server : "me.desair.tus:tus-java-server:${versions.tus_server}"],
-	xmlapi : "xml-apis:xml-apis:${versions.xmlapi}"
+def log = [
+  slf4j: [ api:"org.slf4j:slf4j-api:${versions.slf4j}"
+  ]
 ]
 
-def javax = [
-	servlet : "javax.servlet:javax.servlet-api:${versions.servlet_api}"
-]
-
-ext.deps = [ 'spring': spring, 'jackson': jackson, 'apache': apache, 
-	'jetty': jetty, 'log':log, 'org':org, 'com':com, 'javax':javax ]
+ext.deps = [ 'jackson': jackson, 'apache': apache, 'log':log]
