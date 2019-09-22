@@ -24,7 +24,6 @@ compileJava {
     options.debugOptions.debugLevel = 'source,lines,vars'
 }
 
-
 dependencies {
 	implementation deps.log.slf4j.api 
     implementation deps.jackson.annotations

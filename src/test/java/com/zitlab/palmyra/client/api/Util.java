@@ -3,17 +3,19 @@
  */
 package com.zitlab.palmyra.client.api;
 
-import com.zitlab.palmyra.client.rest.PalmyraClient;
+import com.zitlab.palmyra.client.PalmyraClient;
 
 /**
  * @author ksvraja
  *
  */
 public class Util {
-	private static String baseUrl = "http://localhost:8080/palmyra/v1";
-	private static String username = "raja";
-	private static String password = "zit";
-	private static String appn="atsm";
+	//private static String host = "http://13.234.203.190/fluwiz/api/v2";
+	private static String host = "http://localhost:8080/fluwiz/api/v2";
+	private static String baseUrl = host ;
+	private static String username = "orch";
+	private static String password = "password";
+	private static String appn="atsmdev";
 	
 	public static final PalmyraClient getClient() {
 		return  new PalmyraClient(baseUrl, username, password, appn);

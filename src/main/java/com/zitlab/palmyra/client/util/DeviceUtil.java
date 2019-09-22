@@ -9,11 +9,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author ksvraja
  *
  */
 public class DeviceUtil {
+	private static final Logger logger = LoggerFactory.getLogger(DeviceUtil.class);
 	public static String getLowestMac() {
 		String minMac = null;
 		Long minMacL = null;
@@ -40,7 +44,7 @@ public class DeviceUtil {
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.error("Error while processing MAC address", t);
 		}
 		return minMac;
 	}
@@ -63,7 +67,7 @@ public class DeviceUtil {
 			}
 			value = hexString + "";
 		} catch (final NoSuchAlgorithmException nsae) {
-			nsae.printStackTrace();
+			logger.error("Error while encrypting value " + value, nsae);
 		}
 		return value;
 	}
@@ -86,9 +90,7 @@ public class DeviceUtil {
 			address = sb.toString();
 
 		} catch (SocketException ex) {
-
-			ex.printStackTrace();
-
+			logger.error("Error while retrieving mac addresses ", ex);
 		}
 
 		return address;

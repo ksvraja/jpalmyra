@@ -72,16 +72,10 @@ public abstract class BaseRestClient {
 			logger.info("Server Connection refused !!");
 			logger.info(ce.getMessage());
 			throw new ClientException(HttpStatus.SC_SERVICE_UNAVAILABLE,
-					"Server Connection refused !! Please check server reachability");
-		} catch (ClientProtocolException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol");
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			throw new ClientException(600, "IOException occured");
-		}
+					"Server Connection refused !! Please check server reachability", ce);
+		} catch (ClientProtocolException e1) {			
+			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
+		} 
 		return entity;
 	}
 	
@@ -99,15 +93,9 @@ public abstract class BaseRestClient {
 			logger.info("Server Connection refused !!");
 			logger.info(ce.getMessage());
 			throw new ClientException(HttpStatus.SC_SERVICE_UNAVAILABLE,
-					"Server Connection refused !! Please check server reachability");
-		} catch (ClientProtocolException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol");
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			throw new ClientException(600, "IOException occured");
+					"Server Connection refused !! Please check server reachability",ce);
+		} catch (ClientProtocolException e1) {		
+			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol",e1);
 		}
 		return entity;
 	}
@@ -126,15 +114,9 @@ public abstract class BaseRestClient {
 			logger.info("Server Connection refused !!");
 			logger.info(ce.getMessage());
 			throw new ClientException(HttpStatus.SC_SERVICE_UNAVAILABLE,
-					"Server Connection refused !! Please check server reachability");
+					"Server Connection refused !! Please check server reachability",ce);
 		} catch (ClientProtocolException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol");
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-			throw new ClientException(600, "IOException occured");
+			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol",e1);
 		}
 		return entity;
 	}
@@ -174,7 +156,7 @@ public abstract class BaseRestClient {
 		}
 		case HttpStatus.SC_BAD_REQUEST:{
 			Tuple tuple = deserialize(entity, Tuple.class);
-			String responseMessage = tuple.getAttributeAsString("message");
+			String responseMessage = tuple.getAttributeAsString("error");
 			logger.info("Bad Request sent to the server url -- {}, response -- {}", url, responseMessage);			
 			throw new BadRequestException("Bad Request sent to the server -- error message " + responseMessage );
 		}
@@ -204,7 +186,6 @@ public abstract class BaseRestClient {
 		try {
 			httpclient.close();
 		} catch (Throwable e) {
-			e.printStackTrace();
 		}
 	}	
 }

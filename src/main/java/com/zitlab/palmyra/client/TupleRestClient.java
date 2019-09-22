@@ -174,7 +174,7 @@ public class TupleRestClient extends BaseRestClient {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl).append("/")
 				// .append("/api/")
-				.append(appn).append("/action/").append(action);
+				.append(appn).append("/action/__common/").append(action);
 		return sb.toString();
 	}
 

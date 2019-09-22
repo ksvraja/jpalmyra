@@ -26,8 +26,8 @@ public class ClientException extends IOException{
 		super(s,t);
 	}
 	
-	public ClientException(int errorcode, final String s) {
-		super(s);
+	public ClientException(int errorcode, final String s, Throwable t) {
+		super(s, t);
 	}
 	
 	public int getErrorCode() {
