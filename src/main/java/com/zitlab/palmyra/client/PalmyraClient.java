@@ -6,13 +6,14 @@ package com.zitlab.palmyra.client;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.xml.ws.http.HTTPException;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zitlab.palmyra.client.exception.ClientException;
+import com.zitlab.palmyra.client.exception.EmptyResultException;
+import com.zitlab.palmyra.client.exception.NoActionResultException;
+import com.zitlab.palmyra.client.exception.NoRecordException;
 import com.zitlab.palmyra.client.pojo.Tuple;
 import com.zitlab.palmyra.client.pojo.TupleFilter;
 import com.zitlab.palmyra.client.pojo.TupleResultSet;
@@ -32,7 +33,7 @@ public class PalmyraClient extends TupleRestClient {
 		String type = getAnnotation(valueType);
 		HttpEntity entity = delete(getUrl(type, id));
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoRecordException(type);
 		}
 	}
 
@@ -76,7 +77,7 @@ public class PalmyraClient extends TupleRestClient {
 			return deserialize(entity, new TypeReference<TupleResultSet<T>>() {
 			});
 		}
-		throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);		
+		throw new NoRecordException(type);		
 	}
 	
 	public <T> ArrayList<T> list(TupleFilter<T> filter, Class<T> valueType) throws IOException {
@@ -86,7 +87,7 @@ public class PalmyraClient extends TupleRestClient {
 			return deserialize(entity, new TypeReference<ArrayList<T>>() {
 			});
 		}
-		throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);		
+		throw new NoRecordException(type);		
 	}
 
 	public <T> T save(Object obj, Class<T> valueType) throws IOException {
@@ -95,7 +96,7 @@ public class PalmyraClient extends TupleRestClient {
 		if (null != entity) {
 			return deserialize(entity, valueType);
 		}
-		throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		throw new NoRecordException(type);
 	}
 
 	public <T> T save(Object obj, Class<T> valueType, String id) throws IOException {
@@ -106,13 +107,13 @@ public class PalmyraClient extends TupleRestClient {
 		if (null != entity) {
 			return deserialize(entity, valueType);
 		}
-		throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		throw new NoRecordException(type);
 	}
 
 	public <T> ArrayList<T> list(String url, Object obj, Class<T> valueType) throws IOException {
 		HttpEntity entity = post(customUrl(url), obj);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new EmptyResultException(url);
 		}
 		return deserialize(entity, new TypeReference<ArrayList<T>>() {
 		});
@@ -121,7 +122,7 @@ public class PalmyraClient extends TupleRestClient {
 	public <T> T postCustom(String url, Object obj, Class<T> valueType) throws IOException {
 		HttpEntity entity = post(customUrl(url), obj);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new EmptyResultException(url);
 		}
 		return deserialize(entity, valueType);
 	}
@@ -129,7 +130,7 @@ public class PalmyraClient extends TupleRestClient {
 	public <T> T getCustom(String url, Class<T> valueType) throws IOException {
 		HttpEntity entity = get(customUrl(url));
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new EmptyResultException(url);
 		}
 		return deserialize(entity, valueType);
 	}
@@ -139,7 +140,7 @@ public class PalmyraClient extends TupleRestClient {
 		if (null != entity) {
 			return deserialize(entity, valueType);
 		}
-		throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+		throw new NoActionResultException(action);
 	}
 
 	private static String getAnnotation(Class<?> t) {

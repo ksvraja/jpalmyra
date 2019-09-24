@@ -8,16 +8,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import javax.xml.ws.http.HTTPException;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpMessage;
-import org.apache.http.HttpStatus;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zitlab.palmyra.client.auth.AuthClient;
 import com.zitlab.palmyra.client.auth.PalmyraAuthClient;
+import com.zitlab.palmyra.client.exception.EmptyResultException;
+import com.zitlab.palmyra.client.exception.NoActionResultException;
+import com.zitlab.palmyra.client.exception.NoRecordException;
 import com.zitlab.palmyra.client.pojo.Tuple;
 import com.zitlab.palmyra.client.pojo.TupleFilter;
 import com.zitlab.palmyra.client.pojo.TupleResultSet;
@@ -76,7 +76,7 @@ public class TupleRestClient extends BaseRestClient {
 	public TupleResultSet<Tuple> query(TupleFilter<Tuple> filter, String type) throws IOException {
 		HttpEntity entity = post(queryUrl(type), filter);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoRecordException(type);
 		}
 		return deserialize(entity, new TypeReference<TupleResultSet<Tuple>>() {
 		});
@@ -85,7 +85,7 @@ public class TupleRestClient extends BaseRestClient {
 	public ArrayList<Tuple> list(TupleFilter<Tuple> filter, String type) throws IOException {
 		HttpEntity entity = post(listUrl(type), filter);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoRecordException(type);
 		}
 		return deserialize(entity, new TypeReference<ArrayList<Tuple>>() {
 		});
@@ -94,7 +94,7 @@ public class TupleRestClient extends BaseRestClient {
 	public ArrayList<Tuple> listCustom(String url, Object obj) throws IOException {
 		HttpEntity entity = post(customUrl(url), obj);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new EmptyResultException(url);
 		}
 		return deserialize(entity, new TypeReference<ArrayList<Tuple>>() {
 		});
@@ -103,7 +103,7 @@ public class TupleRestClient extends BaseRestClient {
 	public Tuple postCustom(String url, Object obj) throws IOException {
 		HttpEntity entity = post(customUrl(url), obj);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new EmptyResultException(url);
 		}
 		return deserialize(entity, Tuple.class);
 	}
@@ -111,7 +111,7 @@ public class TupleRestClient extends BaseRestClient {
 	public Tuple getCustom(String url) throws IOException {
 		HttpEntity entity = get(customUrl(url));
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new EmptyResultException(url);
 		}
 		return deserialize(entity, Tuple.class);
 	}
@@ -120,7 +120,7 @@ public class TupleRestClient extends BaseRestClient {
 		String type = tuple.getType();
 		HttpEntity entity = post(getUrl(type), tuple);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoRecordException(type);
 		}
 		return deserialize(entity, Tuple.class);
 	}
@@ -203,7 +203,7 @@ public class TupleRestClient extends BaseRestClient {
 	public final Tuple executeAction(String action) throws IOException {
 		HttpEntity entity = post(actionUrl(action), "{}");
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoActionResultException(action);
 		}
 		return deserialize(entity, Tuple.class);
 	}
@@ -211,7 +211,7 @@ public class TupleRestClient extends BaseRestClient {
 	public final Tuple executeAction(String action, Tuple tuple) throws IOException {
 		HttpEntity entity = post(actionUrl(action), tuple);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoActionResultException(action);
 		}
 		return deserialize(entity, Tuple.class);
 	}
@@ -219,7 +219,7 @@ public class TupleRestClient extends BaseRestClient {
 	public final ArrayList<Tuple> executeActionList(String action, Tuple tuple) throws IOException {
 		HttpEntity entity = post(actionUrl(action), tuple);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoActionResultException(action);
 		}
 		ArrayList<Tuple> result = deserialize(entity, new TypeReference<ArrayList<Tuple>>() {
 		});
@@ -229,7 +229,7 @@ public class TupleRestClient extends BaseRestClient {
 	public final Tuple executeAction(String action, String type) throws IOException {
 		HttpEntity entity = post(actionUrl(action, type), "{}");
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoRecordException(type);
 		}
 		return deserialize(entity, Tuple.class);
 	}
@@ -237,7 +237,7 @@ public class TupleRestClient extends BaseRestClient {
 	public final Tuple executeAction(String action, Tuple tuple, String type) throws IOException {
 		HttpEntity entity = post(actionUrl(action, type), tuple);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoRecordException(type);
 		}
 		return deserialize(entity, Tuple.class);
 	}
@@ -245,7 +245,7 @@ public class TupleRestClient extends BaseRestClient {
 	public final ArrayList<Tuple> executeActionList(String action, Tuple tuple, String type) throws IOException {
 		HttpEntity entity = post(actionUrl(action, type), tuple);
 		if (null == entity) {
-			throw new HTTPException(HttpStatus.SC_SERVICE_UNAVAILABLE);
+			throw new NoRecordException(type);
 		}
 		ArrayList<Tuple> result = deserialize(entity, new TypeReference<ArrayList<Tuple>>() {
 		});
