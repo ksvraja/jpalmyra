@@ -16,6 +16,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -61,7 +62,7 @@ public abstract class BaseRestClient {
 
 		setAuthentication(httpPost);
 		try {
-			StringEntity body = new StringEntity(data);
+			StringEntity body = new StringEntity(data, ContentType.create("application/json", "UTF-8"));
 			httpPost.setEntity(body);
 			response = httpclient.execute(httpPost);
 			entity = processHttpCode(response, URL);
@@ -157,6 +158,8 @@ public abstract class BaseRestClient {
 		case HttpStatus.SC_BAD_REQUEST:{
 			Tuple tuple = deserialize(entity, Tuple.class);
 			String responseMessage = tuple.getAttributeAsString("error");
+			if(null == responseMessage)
+				responseMessage = tuple.getAttributeAsString("message");
 			logger.info("Bad Request sent to the server url -- {}, response -- {}", url, responseMessage);			
 			throw new BadRequestException("Bad Request sent to the server -- error message " + responseMessage );
 		}
