@@ -14,6 +14,7 @@ import org.apache.http.HttpMessage;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zitlab.palmyra.client.auth.AuthClient;
+import com.zitlab.palmyra.client.auth.BasicAuthClient;
 import com.zitlab.palmyra.client.auth.PalmyraAuthClient;
 import com.zitlab.palmyra.client.exception.EmptyResultException;
 import com.zitlab.palmyra.client.exception.NoActionResultException;
@@ -33,7 +34,7 @@ public class TupleRestClient extends BaseRestClient {
 	private String password;
 	private String appn;
 	private String deviceId;
-	private AuthClient authClient = new PalmyraAuthClient();
+	private AuthClient authClient = new BasicAuthClient();
 
 	public TupleRestClient(String baseUrl, String username, String password, String appn) {
 		this.baseUrl = baseUrl;
