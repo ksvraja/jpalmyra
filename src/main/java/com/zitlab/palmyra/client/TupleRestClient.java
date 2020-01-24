@@ -8,14 +8,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpMessage;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zitlab.palmyra.client.auth.AuthClient;
 import com.zitlab.palmyra.client.auth.BasicAuthClient;
-import com.zitlab.palmyra.client.auth.PalmyraAuthClient;
 import com.zitlab.palmyra.client.exception.EmptyResultException;
 import com.zitlab.palmyra.client.exception.NoActionResultException;
 import com.zitlab.palmyra.client.exception.NoRecordException;
@@ -38,9 +36,8 @@ public class TupleRestClient extends BaseRestClient {
 
 	public TupleRestClient(String baseUrl, String username, String password, String appn) {
 		this.baseUrl = baseUrl;
-		this.username = username;
-		if(null != password)
-			this.password = DigestUtils.md5Hex(password);
+		this.username = username;		
+		this.password = password;
 		this.appn = appn;
 	}
 

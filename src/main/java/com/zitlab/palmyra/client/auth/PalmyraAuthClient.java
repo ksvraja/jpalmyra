@@ -17,7 +17,7 @@ public class PalmyraAuthClient implements AuthClient{
 	@Override
 	public HashMap<String, String> getHeaders(String username, String password, String context, String deviceId) {		
 		String random = getUniqueRef();
-		StringBuilder auth = new StringBuilder(username).append("@").append(context).append(":").append(password)
+		StringBuilder auth = new StringBuilder(username).append("@").append(context).append(":").append(DigestUtils.md5Hex(password))
 				.append(random);
 		
 		String authHeader = DigestUtils.md5Hex(auth.toString());
