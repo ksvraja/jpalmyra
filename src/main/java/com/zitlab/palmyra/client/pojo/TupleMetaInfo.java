@@ -10,9 +10,10 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 public class TupleMetaInfo {
 	
-	String type;
-	Integer action;
-	String label;
+	private String type;
+	private Integer action;
+	private String label;
+	private String error;
 		
 	@JsonIgnore
 	private String labelFormat;
@@ -78,6 +79,12 @@ public class TupleMetaInfo {
 		return action;
 	}
 
+	public String getError() {
+		return error;
+	}
+	public void setError(String error) {
+		this.error = error;
+	}
 	public void setAction(String actn) {		
 		if (null == actn) {
 			this.action = null;

@@ -19,9 +19,10 @@ public class TestTuple {
 		PalmyraClient client = Util.getClient();
 		client.setAuthClient(new PalmyraAuthClient());
 //		client.executeAction("getTeleradSession");		
-		Tuple result = client.findById("100", "zit_users");
+		//Tuple result = client.findById("100", "zit_users");
+		Tuple result = client.findById("879", "mrci_series");
 		
 		
-		System.out.println(result.getId());
+		System.out.println(result.getId() + " " + result.getAttributeAsString("code"));
 	}
 }

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -16,10 +17,12 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +41,7 @@ import com.zitlab.palmyra.client.pojo.Tuple;
  *
  */
 public abstract class BaseRestClient {
-	private CloseableHttpClient httpclient = HttpClients.createDefault();
+	private CloseableHttpClient httpclient = getHttpClient();
 	private static final Logger logger = LoggerFactory.getLogger(BaseRestClient.class);
 	private ObjectMapper objectMapper;
 	
@@ -51,6 +54,18 @@ public abstract class BaseRestClient {
 	
 	protected HttpEntity post(String URL, Object data) throws IOException {
 		return post(URL, objectMapper.writeValueAsString(data));
+	}
+	
+	
+	private static CloseableHttpClient getHttpClient() {
+		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+		cm.setMaxTotal(128);
+		cm.setDefaultMaxPerRoute(64);
+
+		CloseableHttpClient httpClient = HttpClients.custom()
+		        .setConnectionManager(cm)
+		        .build();
+		return httpClient;
 	}
 	
 	protected HttpEntity post(String URL, String data) throws IOException {

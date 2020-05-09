@@ -5,9 +5,9 @@ package com.zitlab.palmyra.client;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zitlab.palmyra.client.exception.ClientException;
@@ -95,6 +95,25 @@ public class PalmyraClient extends TupleRestClient {
 		HttpEntity entity = post(getUrl(type), obj);
 		if (null != entity) {
 			return deserialize(entity, valueType);
+		}
+		throw new NoRecordException(type);
+	}
+	
+	public <T> List<T> save(List<T> objs, String type,  Class<T> valueType) throws IOException {	
+		HttpEntity entity = post(getMultiUrl(type), objs);
+		if (null != entity) {
+			return deserialize(entity, new TypeReference<ArrayList<T>>() {
+			});
+		}
+		throw new NoRecordException(type);
+	}
+	
+	public <T> List<T> save(List<Object> objs, Class<T> valueType) throws IOException {
+		String type = getAnnotation(valueType);		
+		HttpEntity entity = post(getMultiUrl(type), objs);
+		if (null != entity) {
+			return deserialize(entity, new TypeReference<ArrayList<T>>() {
+			});
 		}
 		throw new NoRecordException(type);
 	}

@@ -6,6 +6,7 @@ package com.zitlab.palmyra.client;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.http.HttpEntity;
@@ -122,7 +123,16 @@ public class TupleRestClient extends BaseRestClient {
 		}
 		return deserialize(entity, Tuple.class);
 	}
-
+	
+	public List<Tuple> save(List<Tuple> objs, String type) throws IOException {	
+		HttpEntity entity = post(getMultiUrl(type), objs);
+		if (null != entity) {
+			return deserialize(entity, new TypeReference<ArrayList<Tuple>>() {
+			});
+		}
+		throw new NoRecordException(type);
+	}
+	
 	@Override
 	protected final void setAuthentication(HttpMessage request) {
 		HashMap<String, String> headers = authClient.getHeaders(username, password, appn, deviceId);
@@ -135,6 +145,14 @@ public class TupleRestClient extends BaseRestClient {
 		return authClient.getHeaders(username, password, appn, deviceId);
 	}
 
+	protected final String getMultiUrl(String type) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(baseUrl).append("/")
+				// .append("/api/")
+				.append(appn).append("/data/").append(type).append("/multi");
+		return sb.toString();
+	}
+	
 	protected final String getUrl(String type) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl).append("/")
@@ -163,7 +181,7 @@ public class TupleRestClient extends BaseRestClient {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl).append("/")
 				// .append("/api/")
-				.append(appn).append("/action/");
+				.append(appn).append("/exec/");
 		sb.append("/").append(type).append("/").append(action);
 		return sb.toString();
 	}
@@ -172,7 +190,7 @@ public class TupleRestClient extends BaseRestClient {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl).append("/")
 				// .append("/api/")
-				.append(appn).append("/action/__common/").append(action);
+				.append(appn).append("/exec/__common/").append(action);
 		return sb.toString();
 	}
 
