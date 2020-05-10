@@ -140,7 +140,8 @@ public abstract class BaseRestClient {
 	private HttpEntity processHttpCode(HttpResponse response, String url) throws IOException {
 		StatusLine status = response.getStatusLine();
 		int code = status.getStatusCode();
-		logger.trace("Server Status Code : {}", code);
+		if(logger.isTraceEnabled())
+			logger.trace("Server Status Code : {}", code);
 		HttpEntity entity = response.getEntity();
 		if (code == HttpStatus.SC_OK)
 			return entity;
