@@ -5,9 +5,10 @@ package com.zitlab.palmyra.client;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpMessage;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -17,7 +18,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zitlab.palmyra.client.exception.ApplicationException;
 import com.zitlab.palmyra.client.exception.BadRequestException;
 import com.zitlab.palmyra.client.exception.ClientException;
 import com.zitlab.palmyra.client.exception.ServerErrorException;
@@ -44,30 +45,27 @@ public abstract class BaseRestClient {
 	private CloseableHttpClient httpclient = getHttpClient();
 	private static final Logger logger = LoggerFactory.getLogger(BaseRestClient.class);
 	private ObjectMapper objectMapper;
-	
+
 	protected abstract void setAuthentication(HttpMessage request);
-	
+
 	public BaseRestClient() {
 		objectMapper = new ObjectMapper();
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-	}	
-	
+	}
+
 	protected HttpEntity post(String URL, Object data) throws IOException {
 		return post(URL, objectMapper.writeValueAsString(data));
 	}
-	
-	
+
 	private static CloseableHttpClient getHttpClient() {
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 		cm.setMaxTotal(128);
 		cm.setDefaultMaxPerRoute(64);
 
-		CloseableHttpClient httpClient = HttpClients.custom()
-		        .setConnectionManager(cm)
-		        .build();
+		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
 		return httpClient;
 	}
-	
+
 	protected HttpEntity post(String URL, String data) throws IOException {
 		HttpEntity entity = null;
 		CloseableHttpResponse response = null;
@@ -81,37 +79,36 @@ public abstract class BaseRestClient {
 			httpPost.setEntity(body);
 			response = httpclient.execute(httpPost);
 			entity = processHttpCode(response, URL);
-		} catch(UnAuthorizedException ue) {
+		} catch (UnAuthorizedException ue) {
 			throw ue;
-		}
-		catch (ConnectException ce) {
+		} catch (ConnectException ce) {
 			logger.info("Server Connection refused !!");
 			logger.info(ce.getMessage());
 			throw new ClientException(HttpStatus.SC_SERVICE_UNAVAILABLE,
 					"Server Connection refused !! Please check server reachability", ce);
-		} catch (ClientProtocolException e1) {			
+		} catch (ClientProtocolException e1) {
 			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
-		} 
+		}
 		return entity;
 	}
-	
+
 	protected HttpEntity get(String URL) throws IOException {
 		HttpEntity entity = null;
 		CloseableHttpResponse response = null;
 		HttpGet httpGet = new HttpGet(URL);
 		httpGet.addHeader("accept", "application/json");
-		httpGet.addHeader("content-type", "application/json");		
+		httpGet.addHeader("content-type", "application/json");
 		setAuthentication(httpGet);
-		try {			
+		try {
 			response = httpclient.execute(httpGet);
 			entity = processHttpCode(response, URL);
 		} catch (ConnectException ce) {
 			logger.info("Server Connection refused !!");
 			logger.info(ce.getMessage());
 			throw new ClientException(HttpStatus.SC_SERVICE_UNAVAILABLE,
-					"Server Connection refused !! Please check server reachability",ce);
-		} catch (ClientProtocolException e1) {		
-			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol",e1);
+					"Server Connection refused !! Please check server reachability", ce);
+		} catch (ClientProtocolException e1) {
+			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
 		}
 		return entity;
 	}
@@ -121,7 +118,7 @@ public abstract class BaseRestClient {
 		CloseableHttpResponse response = null;
 		HttpDelete httpDelete = new HttpDelete(URL);
 		httpDelete.addHeader("accept", "application/json");
-		httpDelete.addHeader("content-type", "application/json");		
+		httpDelete.addHeader("content-type", "application/json");
 		setAuthentication(httpDelete);
 		try {
 			response = httpclient.execute(httpDelete);
@@ -130,17 +127,18 @@ public abstract class BaseRestClient {
 			logger.info("Server Connection refused !!");
 			logger.info(ce.getMessage());
 			throw new ClientException(HttpStatus.SC_SERVICE_UNAVAILABLE,
-					"Server Connection refused !! Please check server reachability",ce);
+					"Server Connection refused !! Please check server reachability", ce);
 		} catch (ClientProtocolException e1) {
-			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol",e1);
+			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
 		}
 		return entity;
 	}
 
+	@SuppressWarnings("unchecked")
 	private HttpEntity processHttpCode(HttpResponse response, String url) throws IOException {
 		StatusLine status = response.getStatusLine();
 		int code = status.getStatusCode();
-		if(logger.isTraceEnabled())
+		if (logger.isTraceEnabled())
 			logger.trace("Server Status Code : {}", code);
 		HttpEntity entity = response.getEntity();
 		if (code == HttpStatus.SC_OK)
@@ -171,20 +169,28 @@ public abstract class BaseRestClient {
 			logger.info("Requested URL not found message from server url -- {}", url);
 			throw new ClientException("Requested URL not found from the server");
 		}
-		case HttpStatus.SC_BAD_REQUEST:{
+		case HttpStatus.SC_BAD_REQUEST: {
 			Tuple tuple = deserialize(entity, Tuple.class);
 			String responseMessage = tuple.getAttributeAsString("error");
-			if(null == responseMessage)
+			if (null == responseMessage)
 				responseMessage = tuple.getAttributeAsString("message");
-			logger.info("Bad Request sent to the server url -- {}, response -- {}", url, responseMessage);			
-			throw new BadRequestException("Bad Request sent to the server -- error message " + responseMessage );
+			logger.info("Bad Request sent to the server url -- {}, response -- {}", url, responseMessage);
+			throw new BadRequestException("Bad Request sent to the server -- error message " + responseMessage);
 		}
-		case HttpStatus.SC_NO_CONTENT:{
+		case HttpStatus.SC_NO_CONTENT: {
 			logger.trace("Empty response received for the request");
 			return null;
 		}
-		default:
-			return response.getEntity();
+		default: {
+			Map<String, Object> val = null;
+			String message = null;
+			try {
+				val = deserialize(entity, HashMap.class);
+			} catch (Throwable e) {
+				message = EntityUtils.toString(entity);
+			}
+			throw new ApplicationException(code, message, val);
+		}
 		}
 	}
 
@@ -200,11 +206,11 @@ public abstract class BaseRestClient {
 //	protected final String serialize(Object obj) throws IOException {
 //		return objectMapper.writeValueAsString(obj);
 //	}	
-	
+
 	public void close() {
 		try {
 			httpclient.close();
 		} catch (Throwable e) {
 		}
-	}	
+	}
 }
