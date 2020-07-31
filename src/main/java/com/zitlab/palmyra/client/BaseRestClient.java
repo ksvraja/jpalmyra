@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpMessage;
@@ -44,6 +47,7 @@ import com.zitlab.palmyra.client.pojo.Tuple;
 public abstract class BaseRestClient {
 	private CloseableHttpClient httpclient = getHttpClient();
 	private static final Logger logger = LoggerFactory.getLogger(BaseRestClient.class);
+	private static IdleConnectionMonitor monitor = null;
 	private ObjectMapper objectMapper;
 
 	protected abstract void setAuthentication(HttpMessage request);
@@ -59,9 +63,12 @@ public abstract class BaseRestClient {
 
 	private static CloseableHttpClient getHttpClient() {
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-		cm.setMaxTotal(128);
-		cm.setDefaultMaxPerRoute(64);
-
+		cm.setMaxTotal(256);
+		cm.setDefaultMaxPerRoute(256);
+		monitor = new IdleConnectionMonitor(cm);
+        Thread monitorThread = new Thread(monitor);
+        monitorThread.setDaemon(true);
+        monitorThread.start();
 		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
 		return httpClient;
 	}
@@ -203,14 +210,69 @@ public abstract class BaseRestClient {
 		return objectMapper.readValue(entity.getContent(), valueType);
 	}
 
-//	protected final String serialize(Object obj) throws IOException {
-//		return objectMapper.writeValueAsString(obj);
-//	}	
-
 	public void close() {
 		try {
 			httpclient.close();
 		} catch (Throwable e) {
 		}
 	}
+	
+	// Based on - https://stackoverflow.com/questions/25666995/apache-httpclient-need-to-use-multithreadedhttpconnectionmanager
+	 private static class IdleConnectionMonitor implements Runnable {
+	        // The manager to watch.
+	        private final PoolingHttpClientConnectionManager cm;
+	        // Use a BlockingQueue to stop everything.
+	        private final BlockingQueue<Stop> stopSignal = new ArrayBlockingQueue<Stop>(1);
+
+	        IdleConnectionMonitor(PoolingHttpClientConnectionManager cm) {
+	            this.cm = cm;
+	        }
+
+	        public void run() {
+	            try {
+	                // Holds the stop request that stopped the process.
+	                Stop stopRequest;
+	                // Every 5 seconds.
+	                while ((stopRequest = stopSignal.poll(5, TimeUnit.SECONDS)) == null) {
+	                    // Close expired connections
+	                    cm.closeExpiredConnections();
+	                    // Optionally, close connections that have been idle too long.
+	                    cm.closeIdleConnections(30, TimeUnit.SECONDS);
+	                }
+	                // Acknowledge the stop request.
+	                stopRequest.stopped();
+	            } catch (InterruptedException ex) {
+	                // terminate
+	            }
+	        }
+
+	        // Pushed up the queue.
+	        private static class Stop {
+	            // The return queue.
+	            private final BlockingQueue<Stop> stop = new ArrayBlockingQueue<Stop>(1);
+
+	            // Called by the process that is being told to stop.
+	            public void stopped() {
+	                // Push me back up the queue to indicate we are now stopped.
+	                stop.add(this);
+	            }
+
+	            // Called by the process requesting the stop.
+	            public void waitForStopped() throws InterruptedException {
+	                // Wait until the callee acknowledges that it has stopped.
+	                stop.take();
+	            }
+	        }
+
+	        public void shutdown() throws InterruptedException, IOException {
+	            // Signal the stop to the thread.
+	            Stop stop = new Stop();
+	            stopSignal.add(stop);
+	            // Wait for the stop to complete.
+	            stop.waitForStopped();
+	            // Close the connection manager.
+	            cm.close();
+	        }
+
+	    }
 }
