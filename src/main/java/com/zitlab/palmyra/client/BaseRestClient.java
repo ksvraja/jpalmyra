@@ -45,16 +45,19 @@ import com.zitlab.palmyra.client.pojo.Tuple;
  *
  */
 public abstract class BaseRestClient {
-	private CloseableHttpClient httpclient = getHttpClient();
+	private static CloseableHttpClient httpclient = getHttpClient();
 	private static final Logger logger = LoggerFactory.getLogger(BaseRestClient.class);
-	private static IdleConnectionMonitor monitor = null;
-	private ObjectMapper objectMapper;
+	//private static IdleConnectionMonitor monitor = null;
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
+	static {
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
+	
 	protected abstract void setAuthentication(HttpMessage request);
 
-	public BaseRestClient() {
-		objectMapper = new ObjectMapper();
-		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	public BaseRestClient() {		
+		
 	}
 
 	protected HttpEntity post(String URL, Object data) throws IOException {
@@ -62,13 +65,14 @@ public abstract class BaseRestClient {
 	}
 
 	private static CloseableHttpClient getHttpClient() {
+				
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 		cm.setMaxTotal(256);
-		cm.setDefaultMaxPerRoute(256);
-		monitor = new IdleConnectionMonitor(cm);
-        Thread monitorThread = new Thread(monitor);
-        monitorThread.setDaemon(true);
-        monitorThread.start();
+		cm.setDefaultMaxPerRoute(128);
+		//monitor = new IdleConnectionMonitor(cm);
+//        Thread monitorThread = new Thread(monitor);
+//        monitorThread.setDaemon(true);
+//        monitorThread.start();
 		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
 		return httpClient;
 	}
