@@ -47,17 +47,17 @@ import com.zitlab.palmyra.client.pojo.Tuple;
 public abstract class BaseRestClient {
 	private static CloseableHttpClient httpclient = getHttpClient();
 	private static final Logger logger = LoggerFactory.getLogger(BaseRestClient.class);
-	//private static IdleConnectionMonitor monitor = null;
+	// private static IdleConnectionMonitor monitor = null;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	static {
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
-	
+
 	protected abstract void setAuthentication(HttpMessage request);
 
-	public BaseRestClient() {		
-		
+	public BaseRestClient() {
+
 	}
 
 	protected HttpEntity post(String URL, Object data) throws IOException {
@@ -65,11 +65,11 @@ public abstract class BaseRestClient {
 	}
 
 	private static CloseableHttpClient getHttpClient() {
-				
+
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
 		cm.setMaxTotal(256);
 		cm.setDefaultMaxPerRoute(128);
-		//monitor = new IdleConnectionMonitor(cm);
+		// monitor = new IdleConnectionMonitor(cm);
 //        Thread monitorThread = new Thread(monitor);
 //        monitorThread.setDaemon(true);
 //        monitorThread.start();
@@ -158,11 +158,13 @@ public abstract class BaseRestClient {
 		switch (code) {
 		case HttpStatus.SC_UNAUTHORIZED: {
 			logger.info("Un Authorized error message from server");
-			String message = EntityUtils.toString(entity);
-			if (null == message || message.length() == 0) {
-				message = status.getReasonPhrase();
+			try {
+				Map<String, Object> val = deserialize(entity, HashMap.class);
+				throw new UnAuthorizedException(val);
+			} catch (Throwable e) {
+				String message = EntityUtils.toString(entity);
+				throw new UnAuthorizedException(message);
 			}
-			throw new UnAuthorizedException(message);
 		}
 		case HttpStatus.SC_INTERNAL_SERVER_ERROR: {
 			logger.info("Internal Server error message from server");
@@ -178,15 +180,16 @@ public abstract class BaseRestClient {
 		}
 		case HttpStatus.SC_NOT_FOUND: {
 			logger.info("Requested URL not found message from server url -- {}", url);
-			throw new ClientException("Requested URL not found from the server");
+			throw new ClientException("Requested URL not found from the server -- " + url);
 		}
 		case HttpStatus.SC_BAD_REQUEST: {
-			Tuple tuple = deserialize(entity, Tuple.class);
-			String responseMessage = tuple.getAttributeAsString("error");
-			if (null == responseMessage)
-				responseMessage = tuple.getAttributeAsString("message");
-			logger.info("Bad Request sent to the server url -- {}, response -- {}", url, responseMessage);
-			throw new BadRequestException("Bad Request sent to the server -- error message " + responseMessage);
+			try {
+				Map<String, Object> val = deserialize(entity, HashMap.class);
+				throw new BadRequestException(val);
+			} catch (Throwable e) {
+				String message = EntityUtils.toString(entity);
+				throw new BadRequestException(message);
+			}
 		}
 		case HttpStatus.SC_NO_CONTENT: {
 			logger.trace("Empty response received for the request");
@@ -220,63 +223,64 @@ public abstract class BaseRestClient {
 		} catch (Throwable e) {
 		}
 	}
-	
-	// Based on - https://stackoverflow.com/questions/25666995/apache-httpclient-need-to-use-multithreadedhttpconnectionmanager
-	 private static class IdleConnectionMonitor implements Runnable {
-	        // The manager to watch.
-	        private final PoolingHttpClientConnectionManager cm;
-	        // Use a BlockingQueue to stop everything.
-	        private final BlockingQueue<Stop> stopSignal = new ArrayBlockingQueue<Stop>(1);
 
-	        IdleConnectionMonitor(PoolingHttpClientConnectionManager cm) {
-	            this.cm = cm;
-	        }
+	// Based on -
+	// https://stackoverflow.com/questions/25666995/apache-httpclient-need-to-use-multithreadedhttpconnectionmanager
+	private static class IdleConnectionMonitor implements Runnable {
+		// The manager to watch.
+		private final PoolingHttpClientConnectionManager cm;
+		// Use a BlockingQueue to stop everything.
+		private final BlockingQueue<Stop> stopSignal = new ArrayBlockingQueue<Stop>(1);
 
-	        public void run() {
-	            try {
-	                // Holds the stop request that stopped the process.
-	                Stop stopRequest;
-	                // Every 5 seconds.
-	                while ((stopRequest = stopSignal.poll(5, TimeUnit.SECONDS)) == null) {
-	                    // Close expired connections
-	                    cm.closeExpiredConnections();
-	                    // Optionally, close connections that have been idle too long.
-	                    cm.closeIdleConnections(30, TimeUnit.SECONDS);
-	                }
-	                // Acknowledge the stop request.
-	                stopRequest.stopped();
-	            } catch (InterruptedException ex) {
-	                // terminate
-	            }
-	        }
+		IdleConnectionMonitor(PoolingHttpClientConnectionManager cm) {
+			this.cm = cm;
+		}
 
-	        // Pushed up the queue.
-	        private static class Stop {
-	            // The return queue.
-	            private final BlockingQueue<Stop> stop = new ArrayBlockingQueue<Stop>(1);
+		public void run() {
+			try {
+				// Holds the stop request that stopped the process.
+				Stop stopRequest;
+				// Every 5 seconds.
+				while ((stopRequest = stopSignal.poll(5, TimeUnit.SECONDS)) == null) {
+					// Close expired connections
+					cm.closeExpiredConnections();
+					// Optionally, close connections that have been idle too long.
+					cm.closeIdleConnections(30, TimeUnit.SECONDS);
+				}
+				// Acknowledge the stop request.
+				stopRequest.stopped();
+			} catch (InterruptedException ex) {
+				// terminate
+			}
+		}
 
-	            // Called by the process that is being told to stop.
-	            public void stopped() {
-	                // Push me back up the queue to indicate we are now stopped.
-	                stop.add(this);
-	            }
+		// Pushed up the queue.
+		private static class Stop {
+			// The return queue.
+			private final BlockingQueue<Stop> stop = new ArrayBlockingQueue<Stop>(1);
 
-	            // Called by the process requesting the stop.
-	            public void waitForStopped() throws InterruptedException {
-	                // Wait until the callee acknowledges that it has stopped.
-	                stop.take();
-	            }
-	        }
+			// Called by the process that is being told to stop.
+			public void stopped() {
+				// Push me back up the queue to indicate we are now stopped.
+				stop.add(this);
+			}
 
-	        public void shutdown() throws InterruptedException, IOException {
-	            // Signal the stop to the thread.
-	            Stop stop = new Stop();
-	            stopSignal.add(stop);
-	            // Wait for the stop to complete.
-	            stop.waitForStopped();
-	            // Close the connection manager.
-	            cm.close();
-	        }
+			// Called by the process requesting the stop.
+			public void waitForStopped() throws InterruptedException {
+				// Wait until the callee acknowledges that it has stopped.
+				stop.take();
+			}
+		}
 
-	    }
+		public void shutdown() throws InterruptedException, IOException {
+			// Signal the stop to the thread.
+			Stop stop = new Stop();
+			stopSignal.add(stop);
+			// Wait for the stop to complete.
+			stop.waitForStopped();
+			// Close the connection manager.
+			cm.close();
+		}
+
+	}
 }
