@@ -25,6 +25,10 @@ public class UnAuthorizedException extends ApplicationException{
 		super(401, null, response);
 	}
 	
+	public UnAuthorizedException(Map<String, Object> response, String message) {
+		super(401, message, response);
+	}
+	
 	public UnAuthorizedException(final String s, final Throwable t) {
 		super(401, s, null, t);
 	}

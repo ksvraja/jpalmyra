@@ -23,6 +23,10 @@ public class BadRequestException extends ApplicationException{
 		super(400, null, response);
 	}
 	
+	public BadRequestException(Map<String, Object> response, final String s) {
+		super(400, s, response);
+	}
+	
 	public BadRequestException(final String s, final Throwable t) {
 		super(400, s, null, t);
 	}

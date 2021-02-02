@@ -158,13 +158,14 @@ public abstract class BaseRestClient {
 		switch (code) {
 		case HttpStatus.SC_UNAUTHORIZED: {
 			logger.info("Un Authorized error message from server");
+			Map<String, Object> val = null;
+			String message = null;
 			try {
-				Map<String, Object> val = deserialize(entity, HashMap.class);
-				throw new UnAuthorizedException(val);
+				val = deserialize(entity, HashMap.class);				
 			} catch (Throwable e) {
-				String message = EntityUtils.toString(entity);
-				throw new UnAuthorizedException(message);
+				message = EntityUtils.toString(entity);				
 			}
+			throw new UnAuthorizedException(val, message);
 		}
 		case HttpStatus.SC_INTERNAL_SERVER_ERROR: {
 			logger.info("Internal Server error message from server");
@@ -183,13 +184,14 @@ public abstract class BaseRestClient {
 			throw new ClientException("Requested URL not found from the server -- " + url);
 		}
 		case HttpStatus.SC_BAD_REQUEST: {
+			Map<String, Object> val = null;
+			String message = null;
 			try {
-				Map<String, Object> val = deserialize(entity, HashMap.class);
-				throw new BadRequestException(val);
+				val = deserialize(entity, HashMap.class);				
 			} catch (Throwable e) {
-				String message = EntityUtils.toString(entity);
-				throw new BadRequestException(message);
+				message = EntityUtils.toString(entity);				
 			}
+			throw new BadRequestException(val, message);
 		}
 		case HttpStatus.SC_NO_CONTENT: {
 			logger.trace("Empty response received for the request");
