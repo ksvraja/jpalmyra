@@ -11,10 +11,11 @@ plugins {
 
 apply from: './dependencies.gradle'
 
-apply from: './mvn-push.gradle'
+//apply from: './mvn-push.gradle'
 
 group = 'com.zitlab.palmyra'
-version = VERSION_NAME
+//version = VERSION_NAME
+version = '0.5.1'
 sourceCompatibility = '1.8'
 
 repositories {
