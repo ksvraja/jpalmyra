@@ -159,11 +159,10 @@ public abstract class BaseRestClient {
 		case HttpStatus.SC_UNAUTHORIZED: {
 			logger.info("Un Authorized error message from server");
 			Map<String, Object> val = null;
-			String message = null;
+			String message = EntityUtils.toString(entity);
 			try {
-				val = deserialize(entity, HashMap.class);				
+				val = deserialize(message, HashMap.class);
 			} catch (Throwable e) {
-				message = EntityUtils.toString(entity);				
 			}
 			throw new UnAuthorizedException(val, message);
 		}
@@ -185,11 +184,10 @@ public abstract class BaseRestClient {
 		}
 		case HttpStatus.SC_BAD_REQUEST: {
 			Map<String, Object> val = null;
-			String message = null;
+			String message = EntityUtils.toString(entity);
 			try {
-				val = deserialize(entity, HashMap.class);				
+				val = deserialize(message, HashMap.class);
 			} catch (Throwable e) {
-				message = EntityUtils.toString(entity);				
 			}
 			throw new BadRequestException(val, message);
 		}
@@ -199,11 +197,10 @@ public abstract class BaseRestClient {
 		}
 		default: {
 			Map<String, Object> val = null;
-			String message = null;
+			String message = EntityUtils.toString(entity);
 			try {
-				val = deserialize(entity, HashMap.class);
+				val = deserialize(message, HashMap.class);
 			} catch (Throwable e) {
-				message = EntityUtils.toString(entity);
 			}
 			throw new ApplicationException(code, message, val);
 		}
@@ -217,6 +214,10 @@ public abstract class BaseRestClient {
 
 	protected final <T> T deserialize(HttpEntity entity, Class<T> valueType) throws IOException {
 		return objectMapper.readValue(entity.getContent(), valueType);
+	}
+
+	protected final <T> T deserialize(String content, Class<T> valueType) throws IOException {
+		return objectMapper.readValue(content, valueType);
 	}
 
 	public void close() {
