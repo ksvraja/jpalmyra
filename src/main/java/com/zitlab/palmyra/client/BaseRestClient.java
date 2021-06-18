@@ -7,9 +7,6 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpMessage;
@@ -24,8 +21,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,16 +33,14 @@ import com.zitlab.palmyra.client.exception.BadRequestException;
 import com.zitlab.palmyra.client.exception.ClientException;
 import com.zitlab.palmyra.client.exception.ServerErrorException;
 import com.zitlab.palmyra.client.exception.UnAuthorizedException;
-import com.zitlab.palmyra.client.pojo.Tuple;
 
 /**
  * @author ksvraja
  *
  */
 public abstract class BaseRestClient {
-	private static CloseableHttpClient httpclient = getHttpClient();
+	private static CloseableHttpClient httpclient = HttpClientProvider.getClient();
 	private static final Logger logger = LoggerFactory.getLogger(BaseRestClient.class);
-	// private static IdleConnectionMonitor monitor = null;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	static {
@@ -62,19 +55,6 @@ public abstract class BaseRestClient {
 
 	protected HttpEntity post(String URL, Object data) throws IOException {
 		return post(URL, objectMapper.writeValueAsString(data));
-	}
-
-	private static CloseableHttpClient getHttpClient() {
-
-		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-		cm.setMaxTotal(256);
-		cm.setDefaultMaxPerRoute(128);
-		// monitor = new IdleConnectionMonitor(cm);
-//        Thread monitorThread = new Thread(monitor);
-//        monitorThread.setDaemon(true);
-//        monitorThread.start();
-		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
-		return httpClient;
 	}
 
 	protected HttpEntity post(String URL, String data) throws IOException {
@@ -225,65 +205,5 @@ public abstract class BaseRestClient {
 			httpclient.close();
 		} catch (Throwable e) {
 		}
-	}
-
-	// Based on -
-	// https://stackoverflow.com/questions/25666995/apache-httpclient-need-to-use-multithreadedhttpconnectionmanager
-	private static class IdleConnectionMonitor implements Runnable {
-		// The manager to watch.
-		private final PoolingHttpClientConnectionManager cm;
-		// Use a BlockingQueue to stop everything.
-		private final BlockingQueue<Stop> stopSignal = new ArrayBlockingQueue<Stop>(1);
-
-		IdleConnectionMonitor(PoolingHttpClientConnectionManager cm) {
-			this.cm = cm;
-		}
-
-		public void run() {
-			try {
-				// Holds the stop request that stopped the process.
-				Stop stopRequest;
-				// Every 5 seconds.
-				while ((stopRequest = stopSignal.poll(5, TimeUnit.SECONDS)) == null) {
-					// Close expired connections
-					cm.closeExpiredConnections();
-					// Optionally, close connections that have been idle too long.
-					cm.closeIdleConnections(30, TimeUnit.SECONDS);
-				}
-				// Acknowledge the stop request.
-				stopRequest.stopped();
-			} catch (InterruptedException ex) {
-				// terminate
-			}
-		}
-
-		// Pushed up the queue.
-		private static class Stop {
-			// The return queue.
-			private final BlockingQueue<Stop> stop = new ArrayBlockingQueue<Stop>(1);
-
-			// Called by the process that is being told to stop.
-			public void stopped() {
-				// Push me back up the queue to indicate we are now stopped.
-				stop.add(this);
-			}
-
-			// Called by the process requesting the stop.
-			public void waitForStopped() throws InterruptedException {
-				// Wait until the callee acknowledges that it has stopped.
-				stop.take();
-			}
-		}
-
-		public void shutdown() throws InterruptedException, IOException {
-			// Signal the stop to the thread.
-			Stop stop = new Stop();
-			stopSignal.add(stop);
-			// Wait for the stop to complete.
-			stop.waitForStopped();
-			// Close the connection manager.
-			cm.close();
-		}
-
 	}
 }
