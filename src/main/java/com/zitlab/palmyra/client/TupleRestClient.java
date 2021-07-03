@@ -150,7 +150,6 @@ public class TupleRestClient extends BaseRestClient {
 	protected final String getMultiUrl(String type) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl)
-				// .append("/api/")
 				.append(appn).append("/data/").append(type).append("/multi");
 		return sb.toString();
 	}
@@ -158,7 +157,6 @@ public class TupleRestClient extends BaseRestClient {
 	protected final String getUrl(String type) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl)
-				// .append("/api/")
 				.append(appn).append("/data/").append(type);
 		return sb.toString();
 	}
@@ -166,7 +164,6 @@ public class TupleRestClient extends BaseRestClient {
 	protected final String getUrl(String type, String id) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl)
-				// .append("/api/")
 				.append(appn).append("/data/").append(type).append("/").append(id);
 		return sb.toString();
 	}
@@ -174,7 +171,6 @@ public class TupleRestClient extends BaseRestClient {
 	protected final String queryUrl(String type) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl)
-				// .append("/api/")
 				.append(appn).append("/query/").append(type);
 		return sb.toString();
 	}
@@ -182,8 +178,8 @@ public class TupleRestClient extends BaseRestClient {
 	protected final String actionUrl(String action, String type) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl)
-				// .append("/api/")
-				.append(appn).append("/exec/");
+//				.append(appn).append("/exec/");
+				.append(appn).append("/action/");
 		sb.append("/").append(type).append("/").append(action);
 		return sb.toString();
 	}
@@ -191,15 +187,14 @@ public class TupleRestClient extends BaseRestClient {
 	protected final String actionUrl(String action) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl)
-				// .append("/api/")
-				.append(appn).append("/exec/__common/").append(action);
+				.append(appn).append("/action/__common/").append(action);
+//				.append(appn).append("/exec/__common/").append(action);
 		return sb.toString();
 	}
 
 	protected final String listUrl(String type) {
 		StringBuilder sb = new StringBuilder(type.length() + 32);
 		sb.append(baseUrl)
-				// .append("/api/")
 				.append(appn).append("/query/").append(type).append("/list");
 		return sb.toString();
 	}
@@ -207,7 +202,6 @@ public class TupleRestClient extends BaseRestClient {
 	protected final String uniqueUrl(String type) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl)
-				// .append("/api/")
 				.append(appn).append("/query/").append(type).append("/unique");
 		return sb.toString();
 	}
