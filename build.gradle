@@ -5,21 +5,19 @@
 
 
 plugins {
-    id 'java'
-    id 'maven'
+    id 'java-library'
+    id 'maven-publish'
 }
 
 apply from: './dependencies.gradle'
 
-//apply from: './mvn-push.gradle'
-
 group = 'com.zitlab.palmyra'
-//version = VERSION_NAME
-version = '0.5.1'
+
+version = '2.0.0'
 sourceCompatibility = '1.8'
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 compileJava {
@@ -33,4 +31,25 @@ dependencies {
     implementation deps.jackson.core
     implementation deps.jackson.databind
     implementation deps.apache.http.client
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar {
+                classifier "sources"
+            }
+        }
+    }
+}
+
+artifacts {
+    archives sourcesJar
+    //archives javadocJar
 }
