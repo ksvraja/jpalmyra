@@ -1,68 +1,47 @@
 package com.zitlab.palmyra.client;
 
-import org.apache.http.HttpHost;
+import java.net.ProxySelector;
+
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 
 public class HttpClientProvider {
 	private static CloseableHttpClient httpClient = null;
-	private static final Logger logger = LoggerFactory.getLogger(HttpClientProvider.class);
+
 	public static CloseableHttpClient getClient() {
 		if (null != httpClient)
 			return httpClient;
 
 		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-		cm.setMaxTotal(256);
-		cm.setDefaultMaxPerRoute(128);
-
-		ProxyConfig proxy = getProxy();
-
-		if (null != proxy) {
-			logger.info("Initializing with Proxy {}://{}:{}", proxy.scheme, proxy.host, proxy.port);
-			httpClient = initWithProxy(cm, proxy.host, proxy.port, proxy.scheme);			
+		cm.setMaxTotal(getProperty("jpalmyra.maxroute", 256));
+		cm.setDefaultMaxPerRoute(getProperty("jpalmyra.maxroute.perhost", 256));
+		
+		String proxyEnabled = getProperty("proxy.enabled", "true");
+		
+		HttpClientBuilder builder = HttpClients.custom().setConnectionManager(cm);
+		if ("true".equals(proxyEnabled.toLowerCase())) {
+			SystemDefaultRoutePlanner routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault());
+			builder.setRoutePlanner(routePlanner);
 		}
-		else {
-			logger.info("Initializing direct connection");
-			httpClient = HttpClients.custom().setConnectionManager(cm).build();
-		}
-
-		return httpClient;
+		return builder.build();
 	}
-
-	private static CloseableHttpClient initWithProxy(PoolingHttpClientConnectionManager cm, String proxyServer,
-			int port, String scheme) {
-		HttpHost proxy = new HttpHost(proxyServer, port, scheme);
-		DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);		
-		return HttpClients.custom().setConnectionManager(cm).setRoutePlanner(routePlanner).build();
-	}
-
-	private static ProxyConfig getProxy() {
-		int proxyPort = 80;
-		String proxyScheme = "http";
-		String proxyServer = System.getProperty("http.proxyHost");
-		if (null == proxyServer) {
-			proxyServer = System.getProperty("https.proxyHost");
-			if (null == proxyServer)
-				return null;
-			else {
-				proxyPort = getInt(System.getProperty("https.proxyPort"), 443);
-				proxyScheme = "https";
-			}
-		} else {
-			proxyPort = getInt(System.getProperty("http.proxyPort"), 80);
-		}
-		return new ProxyConfig(proxyServer, proxyPort, proxyScheme);
-	}
-
-	private static int getInt(String value, int defValue) {
+	
+	private static int getProperty(String property, int defValue) {
+		String value = System.getProperty(property);
+		if(null == value)
+			return defValue;
 		try {
 			return Integer.parseInt(value);
-		} catch (Throwable e) {
+		}catch(Exception e) {
 			return defValue;
 		}
+	}
+	
+	private static String getProperty(String property, String defValue) {
+		String value = System.getProperty(property);
+		return null != value ? value : defValue;
 	}
 }

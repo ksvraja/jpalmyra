@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+	
+  <Appenders>
+	<Console name="Console" target="SYSTEM_OUT">
+	  <PatternLayout pattern="%d{hh:mm:ss.SSS} %tid %level{length=2} %c{1.} - %msg%n"/>
+	</Console>
+  </Appenders>
+  <Loggers>
+	<Logger name="com.zitlab.palmyra.webservice.security" level="DEBUG">
+		<AppenderRef ref="Console"/>
+	</Logger>
+	
+	
+	<Logger name="com.zitlab.palmyra" level="debug" />
+	<Logger name="com.zitlab.palmyra.webservice.security" level="debug"/>
+	<Logger name="com.zitlab.palmyra.devicemgmt" level="info"/>
+	<Logger name="com.zitlab.palmyra.cinch.tuple.queryhelper" level = "trace"/>
+	<Logger name="com.zitlab.palmyra.cinch.tuple.dao.NativeQueryDao" level = "trace"/>
+	<Logger name="com.zitlab.palmyra.cinch.tuple.dao" level = "debug"/>
+	<Logger name="com.zitlab.palmyra.cinch.tuple.dao.TupleDao" level = "trace"/>		
+	<Logger name="com.zitlab.ddm.web.proxy" level="info"/>
+		
+	<Logger name="org.eclipse.jetty" level="info"/>
+	<Logger name="org.springframework" level="error"/>	
+	
+	<Root level="error">	
+	  <AppenderRef ref="Console"/>
+	</Root>
+	
+	<Logger name="METRIC.REQUEST" level="debug"/>
+		
+	
+  </Loggers>
+</Configuration>
