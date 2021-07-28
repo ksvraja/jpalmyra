@@ -47,6 +47,13 @@ publishing {
             }
         }
     }
+    if (project.hasProperty("localRepo")){
+        repositories {
+            maven {
+                url = uri("${localRepo}")
+            }
+        }
+    }
 }
 
 artifacts {
