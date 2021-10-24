@@ -79,8 +79,20 @@ public abstract class BaseRestClient {
 					"Server Connection refused !! Please check server reachability", ce);
 		} catch (ClientProtocolException e1) {
 			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
+		} finally {
+			safeClose(response);
 		}
 		return entity;
+	}
+
+	private void safeClose(CloseableHttpResponse response) {
+		if (null != response) {
+			try {
+				response.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}	
+		}
 	}
 
 	protected HttpEntity get(String URL) throws IOException {
@@ -100,6 +112,8 @@ public abstract class BaseRestClient {
 					"Server Connection refused !! Please check server reachability", ce);
 		} catch (ClientProtocolException e1) {
 			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
+		} finally {
+			safeClose(response);
 		}
 		return entity;
 	}
@@ -121,6 +135,8 @@ public abstract class BaseRestClient {
 					"Server Connection refused !! Please check server reachability", ce);
 		} catch (ClientProtocolException e1) {
 			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
+		} finally {			
+			safeClose(response);			
 		}
 		return entity;
 	}
@@ -156,9 +172,11 @@ public abstract class BaseRestClient {
 		}
 		case HttpStatus.SC_GATEWAY_TIMEOUT: {
 			logger.info("Gateway timeout -- {}", url);
+			EntityUtils.consume(entity);
 			throw new ClientException("Gateway timedout while accessing the url ");
 		}
 		case HttpStatus.SC_NOT_FOUND: {
+			EntityUtils.consume(entity);
 			logger.info("Requested URL not found message from server url -- {}", url);
 			throw new ClientException("Requested URL not found from the server -- " + url);
 		}
@@ -172,6 +190,7 @@ public abstract class BaseRestClient {
 			throw new BadRequestException(val, message);
 		}
 		case HttpStatus.SC_NO_CONTENT: {
+			EntityUtils.consume(entity);
 			logger.trace("Empty response received for the request");
 			return null;
 		}
