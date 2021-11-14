@@ -156,10 +156,12 @@ public abstract class BaseRestClient {
 		}
 		case HttpStatus.SC_GATEWAY_TIMEOUT: {
 			logger.info("Gateway timeout -- {}", url);
+			EntityUtils.consume(entity);
 			throw new ClientException("Gateway timedout while accessing the url ");
 		}
 		case HttpStatus.SC_NOT_FOUND: {
 			logger.info("Requested URL not found message from server url -- {}", url);
+			EntityUtils.consume(entity);
 			throw new ClientException("Requested URL not found from the server -- " + url);
 		}
 		case HttpStatus.SC_BAD_REQUEST: {
@@ -172,6 +174,7 @@ public abstract class BaseRestClient {
 			throw new BadRequestException(val, message);
 		}
 		case HttpStatus.SC_NO_CONTENT: {
+			EntityUtils.consume(entity);
 			logger.trace("Empty response received for the request");
 			return null;
 		}
