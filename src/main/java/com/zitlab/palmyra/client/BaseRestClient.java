@@ -79,20 +79,8 @@ public abstract class BaseRestClient {
 					"Server Connection refused !! Please check server reachability", ce);
 		} catch (ClientProtocolException e1) {
 			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
-		} finally {
-			safeClose(response);
 		}
 		return entity;
-	}
-
-	private void safeClose(CloseableHttpResponse response) {
-		if (null != response) {
-			try {
-				response.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}	
-		}
 	}
 
 	protected HttpEntity get(String URL) throws IOException {
@@ -112,9 +100,7 @@ public abstract class BaseRestClient {
 					"Server Connection refused !! Please check server reachability", ce);
 		} catch (ClientProtocolException e1) {
 			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
-		} finally {
-			safeClose(response);
-		}
+		} 
 		return entity;
 	}
 
@@ -135,9 +121,7 @@ public abstract class BaseRestClient {
 					"Server Connection refused !! Please check server reachability", ce);
 		} catch (ClientProtocolException e1) {
 			throw new ClientException(HttpStatus.SC_BAD_REQUEST, "Invalid protocol", e1);
-		} finally {			
-			safeClose(response);			
-		}
+		} 
 		return entity;
 	}
 
