@@ -190,8 +190,7 @@ public abstract class BaseRestClient {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes" })
-	protected final <T> T deserialize(HttpEntity entity, TypeReference valueTypeRef) throws IOException {
+	protected final <T> T deserialize(HttpEntity entity, TypeReference<T> valueTypeRef) throws IOException {
 		return objectMapper.readValue(entity.getContent(), valueTypeRef);
 	}
 
