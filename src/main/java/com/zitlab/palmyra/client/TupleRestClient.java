@@ -208,7 +208,7 @@ public class TupleRestClient extends BaseRestClient {
 		StringBuilder sb = new StringBuilder();
 		sb.append(baseUrl)
 				// .append("/api/")
-				.append(appn).append("/queryUnique").append(type);
+				.append(appn).append("/queryUnique/").append(type);
 		return sb.toString();
 	}
 

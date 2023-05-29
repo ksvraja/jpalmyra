@@ -50,7 +50,7 @@ public class PalmyraClient extends TupleRestClient {
 
 	public <T> T findUnique(TupleFilter<T> tuple, Class<T> valueType) throws IOException {
 		String type = getAnnotation(valueType);
-		HttpEntity entity = get(uniqueUrl(type));
+		HttpEntity entity = post(uniqueUrl(type), tuple);
 		if (null != entity) {
 			return deserialize(entity, valueType);
 		}
@@ -63,7 +63,7 @@ public class PalmyraClient extends TupleRestClient {
 		Tuple tuple = new Tuple(type);
 		tuple.setAttribute(key, value);
 		filter.setCriteria(tuple);
-		HttpEntity entity = get(uniqueUrl(type));
+		HttpEntity entity = post(uniqueUrl(type), filter);
 		if (null != entity) {
 			return deserialize(entity, valueType);
 		}
