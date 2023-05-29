@@ -4,7 +4,10 @@
 package com.zitlab.palmyra.client;
 
 import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.ConnectException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +36,7 @@ import com.zitlab.palmyra.client.exception.BadRequestException;
 import com.zitlab.palmyra.client.exception.ClientException;
 import com.zitlab.palmyra.client.exception.ServerErrorException;
 import com.zitlab.palmyra.client.exception.UnAuthorizedException;
+import com.zitlab.palmyra.client.pojo.TupleResultSet;
 
 /**
  * @author ksvraja
@@ -193,7 +197,34 @@ public abstract class BaseRestClient {
 	protected final <T> T deserialize(HttpEntity entity, TypeReference<T> valueTypeRef) throws IOException {
 		return objectMapper.readValue(entity.getContent(), valueTypeRef);
 	}
+	
+	protected final <T> ArrayList<T> deserializeList(HttpEntity entity, Class<T> valueType) throws IOException {
+		return objectMapper.readValue(entity.getContent(), objectMapper.getTypeFactory().constructCollectionLikeType(ArrayList.class, valueType));
+	}
+	
+	protected final <T> TupleResultSet<T> deserializeResult(HttpEntity entity, Class<T> valueType) throws IOException {		
+		return objectMapper.readValue(entity.getContent(), objectMapper.constructType(getType(TupleResultSet.class, valueType)));
+	}
 
+	protected Type getType(Class<?> rawClass, Class<?> parameter) {
+        return new ParameterizedType() {
+            @Override
+            public Type[] getActualTypeArguments() {
+                return new Type[]{parameter};
+            }
+
+            @Override
+            public Type getRawType() {
+                return rawClass;
+            }
+
+            @Override
+            public Type getOwnerType() {
+                return null;
+            }
+        };
+    }
+	
 	protected final <T> T deserialize(HttpEntity entity, Class<T> valueType) throws IOException {
 		return objectMapper.readValue(entity.getContent(), valueType);
 	}

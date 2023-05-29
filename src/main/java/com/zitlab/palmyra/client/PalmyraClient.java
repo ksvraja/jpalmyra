@@ -74,8 +74,7 @@ public class PalmyraClient extends TupleRestClient {
 		String type = getAnnotation(valueType);	
 		HttpEntity entity = post(queryUrl(type), filter);
 		if (null != entity) {
-			return deserialize(entity, new TypeReference<TupleResultSet<T>>() {
-			});
+			return deserializeResult(entity, valueType);
 		}
 		throw new NoRecordException(type);		
 	}
@@ -84,8 +83,7 @@ public class PalmyraClient extends TupleRestClient {
 		String type = getAnnotation(valueType);	
 		HttpEntity entity = post(listUrl(type), filter);
 		if (null != entity) {
-			return deserialize(entity, new TypeReference<ArrayList<T>>() {
-			});
+			return deserializeList(entity, valueType);
 		}
 		throw new NoRecordException(type);		
 	}
@@ -112,8 +110,7 @@ public class PalmyraClient extends TupleRestClient {
 		String type = getAnnotation(valueType);		
 		HttpEntity entity = post(getMultiUrl(type), objs);
 		if (null != entity) {
-			return deserialize(entity, new TypeReference<ArrayList<T>>() {
-			});
+			return deserializeList(entity, valueType);
 		}
 		throw new NoRecordException(type);
 	}
@@ -134,8 +131,7 @@ public class PalmyraClient extends TupleRestClient {
 		if (null == entity) {
 			throw new EmptyResultException(url);
 		}
-		return deserialize(entity, new TypeReference<ArrayList<T>>() {
-		});
+		return deserializeList(entity, valueType);
 	}
 	
 	public <T> T postCustom(String url, Object obj, Class<T> valueType) throws IOException {
